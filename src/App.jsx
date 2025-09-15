@@ -7,8 +7,8 @@ import useUndoRedo from './hooks/useUndoRedo';
 const App = () => {
   const canvasRef = useRef(null);
   const [status, setStatus] = useState('Ready');
-  
-  // inisialisasi state dengan useUndoRedo
+  const [isPanelOpen, setIsPanelOpen] = useState(false); // 🌟 untuk toggle panel mobile
+
   const initialState = {
     image: null,
     blur: 0,
@@ -71,7 +71,7 @@ const App = () => {
   const handleTextChange = useCallback((id, updates) => {
     setState(prev => ({
       ...prev,
-      texts: prev.texts.map(text => 
+      texts: prev.texts.map(text =>
         text.id === id ? { ...text, ...updates } : text
       )
     }));
@@ -85,28 +85,25 @@ const App = () => {
     setState(prev => ({
       ...prev,
       texts: prev.texts.filter(text => text.id !== id),
-      selectedTextId: prev.texts.length > 1 ? 
+      selectedTextId: prev.texts.length > 1 ?
         (prev.texts.find(t => t.id !== id)?.id || null) : null
     }));
     setStatus('Text layer deleted');
   }, [setState]);
 
   const handleExport = useCallback(() => {
-  if (canvasRef.current) {
-    // unselect biar garis seleksi ilang
-    setState(prev => ({ ...prev, selectedTextId: null }));
+    if (canvasRef.current) {
+      setState(prev => ({ ...prev, selectedTextId: null }));
+      setTimeout(() => {
+        const link = document.createElement('a');
+        link.download = 'timpadawg-result.png';
+        link.href = canvasRef.current.toDataURL('image/png', 1.0);
+        link.click();
+        setStatus('Image exported');
+      }, 50);
+    }
+  }, [setState]);
 
-    setTimeout(() => {
-      const link = document.createElement('a');
-      link.download = 'timpadawg-result.png';
-      link.href = canvasRef.current.toDataURL('image/png', 1.0);
-      link.click();
-      setStatus('Image exported');
-    }, 50); // tunggu 1 frame biar canvas redraw tanpa seleksi
-  }
-}, [setState]);
-
-  // shortcuts keyboard
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.ctrlKey || e.metaKey) {
@@ -133,7 +130,6 @@ const App = () => {
         }
       }
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [undo, redo, handleExport]);
@@ -142,18 +138,20 @@ const App = () => {
 
   return (
     <div className="app">
-      {/* awalan - nama */}
       <header className="header">
         <h1>
           <i className="fas fa-fire"></i>
           timpaDawg
         </h1>
+        {/* 🌟 tombol hamburger saat mobile */}
+        <button className="hamburger-btn" onClick={() => setIsPanelOpen(p => !p)}>
+          <i className="fas fa-bars"></i>
+        </button>
       </header>
 
-      {/* konten utama */}
       <div className="main-content">
-        {/* panel kiri - kontrol */}
-        <div className="panel left-panel">
+        {/* 📌 Panel kiri */}
+        <div className={`panel combined-panel ${isPanelOpen ? 'open' : ''}`}>
           <ControlsPanel
             onImageUpload={handleImageUpload}
             onBlurChange={handleBlurChange}
@@ -167,9 +165,15 @@ const App = () => {
             canRedo={canRedo}
             onExport={handleExport}
           />
+          <div className="divider"></div>
+          <TextPropertiesPanel
+            text={selectedText}
+            onChange={(updates) => selectedText && handleTextChange(selectedText.id, updates)}
+            onDelete={() => selectedText && handleDeleteText(selectedText.id)}
+          />
         </div>
 
-        {/* tengah - canvas */}
+        {/* Canvas */}
         <div className="center-content">
           <div className="canvas-wrapper">
             <CanvasEditor
@@ -184,18 +188,8 @@ const App = () => {
             />
           </div>
         </div>
-
-        {/* panel kanan - teks properti */}
-        <div className="panel right-panel">
-          <TextPropertiesPanel
-            text={selectedText}
-            onChange={(updates) => selectedText && handleTextChange(selectedText.id, updates)}
-            onDelete={() => selectedText && handleDeleteText(selectedText.id)}
-          />
-        </div>
       </div>
 
-      {/* status */}
       <div className="status-bar">
         <div><i className="fas fa-info-circle"></i> {status}</div>
         <div>

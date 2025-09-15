@@ -62,9 +62,23 @@ body {
 .panel {
   background-color: var(--surface);
   padding: 1.25rem;
-  overflow-y: auto;
+  overflow-y: overlay; /* atau hidden kalau mau totally ilang */
   border: 1px solid var(--border);
   box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Tambahkan ini biar scrollbar transparan & tipis */
+.panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.panel::-webkit-scrollbar-thumb {
+  background-color: rgba(255,255,255,0.15);
+  border-radius: 3px;
+}
+
+.panel::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .left-panel {
@@ -403,6 +417,26 @@ body {
   display: flex;
   justify-content: space-between;
 }
+.main-content {
+  display: flex;
+  gap: 1rem;
+}
+
+.combined-panel {
+  display: flex;
+  flex-direction: column;
+  width: 300px; /* atau sesuaikan */
+  border-right: 1px solid var(--border);
+  padding: 1rem;
+  gap: 1rem;
+}
+
+.center-content {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 
 @media (max-width: 1200px) {
   .left-panel {
@@ -413,25 +447,53 @@ body {
     width: 300px;
   }
 }
+/* 🌟 tombol hamburger muncul hanya di mobile */
+.hamburger-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 1.5rem;
+  margin-left: auto;
+  cursor: pointer;
+}
 
 @media (max-width: 768px) {
+  .hamburger-btn {
+    display: block;
+  }
+
   .main-content {
     flex-direction: column;
   }
-  
-  .left-panel, .right-panel {
+
+  .combined-panel {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    width: 80%;
+    max-width: 320px;
+    height: calc(100% - 60px);
+    background: var(--surface);
+    z-index: 999;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    font-size: 12px;
+    padding: 0.75rem;
+  }
+
+  .combined-panel.open {
+    transform: translateX(0);
+  }
+
+  .center-content {
+    flex: 1;
     width: 100%;
-    height: auto;
-    border-right: none;
-    border-left: none;
-    border-bottom: 1px solid var(--border);
+    height: 100%;
+    padding: 0.5rem;
   }
-  
-  .left-panel {
-    border-bottom: 1px solid var(--border);
-  }
-  
-  .right-panel {
-    border-top: 1px solid var(--border);
+
+  .canvas-wrapper {
+    height: calc(100vh - 120px);
   }
 }
